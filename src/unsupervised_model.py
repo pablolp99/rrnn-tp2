@@ -112,5 +112,6 @@ class UnsupervisedModel:
 		return
 
 	def load_model(self, model_name):
-		self.w = np.load(model_name, allow_pickle=False)
+		self.w = np.load(model_name + '.npy', allow_pickle=False)
+		self.trained = True
 		return
