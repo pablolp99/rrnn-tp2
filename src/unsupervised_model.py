@@ -1,10 +1,11 @@
-import numpy as np
-import logging
-import setup_logger
-
-logger = logging.getLogger("UnsupervisedModelLogger")
+try:
+	import numpy as np
+	from tqdm import tqdm
+except:
+	raise ModuleNotFoundError("Some modules could not be found. Try installing the `requirements.txt`")
 
 class UnsupervisedModel:
+	
 	VALID_ALGORITHMS = [
 		'hebb',
 		'oja_sim',
@@ -12,7 +13,7 @@ class UnsupervisedModel:
 		'sanger'
 	]
 	
-	def __init__(self, dataset, input_size, output_size, lr=0.001, algorithm='hebb', normalize=True, log="NOTSET"):
+	def __init__(self, dataset, input_size, output_size, lr=0.001, algorithm='hebb', normalize=True):
 		if algorithm not in self.VALID_ALGORITHMS:
 			raise ValueError("Algorithm '{}' does not exist as a valid algorithm".format(algorithm))
 		
@@ -21,7 +22,6 @@ class UnsupervisedModel:
 		else:
 			self.data = dataset
 		
-		self.__set_log_level(log)   
 		self.lr = lr
 		self.algorithm = algorithm
 		self.n = input_size
@@ -41,14 +41,6 @@ class UnsupervisedModel:
 		# Random matrix of weights, with shape (N, M)
 		# and values come from a N(0, 1) distribution
 		return np.random.normal(0, 1, (self.n, self.m))
-	
-	def __set_log_level(self, log):
-		# Sets log level
-		if log in ["INFO", "DEBUG", "NOTSET"]:
-			logging.basicConfig(level=eval("logging.{}".format(log)))
-		else:
-			raise ValueError("No log level named '{}'".format(log))
-		return
 
 	def __str__(self):
 		# Printable representation
@@ -92,28 +84,33 @@ class UnsupervisedModel:
 		for k in range(j):
 			xit += y[k] * self.w[i][k]
 		return xit
-	
+
 	def train(self):
 		# This method trains the model with
 		# the dataset specified in the init method
-		with tqdm(total=len(self.data)) as pbar:
-			for idx, x in enumerate(self.data):
-				logging.info("Data Iteration Nº {}".format(idx))
-				y = x.dot(self.w)
-				dw = np.zeros(self.w.shape)
-				for i in range(self.n):
-					for j in range(self.m):
-						xit = 0
-						self.__optimizer(xit, y, i, j)
-						dw[i][j] = (self.lr * (x[i] - xit) * y[j])
-				logging.debug("Updating weight matrix values")
-				self.w += dw
-				pbar.update(1)
+		pbar = tqdm(total=len(self.data))
+
+		for idx, x in enumerate(self.data):
+			y = x.dot(self.w)
+			dw = np.zeros(self.w.shape)
+			for i in range(self.n):
+				for j in range(self.m):
+					xit = 0
+					self.__optimizer(xit, y, i, j)
+					dw[i][j] = (self.lr * (x[i] - xit) * y[j])
+			self.w += dw
+			pbar.update(1)
+
 		self.trained = True
 				
 	def predict(self, v):
-		# This method
-		if !self.trained:
-			logging.warn("Model not trained")
+		# This method predicts a vector
 		return v.dot(self.w)
 
+	def save_model(self, model_name):
+		np.save(model_name, self.w)
+		return
+
+	def load_model(self, model_name):
+		self.w = np.load(model_name, allow_pickle=False)
+		return

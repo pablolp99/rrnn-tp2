@@ -1,0 +1,4 @@
+algorithm: oja_sim
+output: 9
+log_level: NOTSET
+lr: 0.001
