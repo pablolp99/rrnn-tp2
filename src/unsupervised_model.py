@@ -7,26 +7,21 @@ except:
 class UnsupervisedModel:
 	
 	VALID_ALGORITHMS = [
-		'hebb',
-		'oja_sim',
 		'oja_gen',
 		'sanger'
 	]
 	
-	def __init__(self, dataset, input_size, output_size, lr=0.001, algorithm='hebb', normalize=True):
+	def __init__(self, dataset, input_size, output_size, normal_params=(0, 0.1), lr=0.001, algorithm='hebb', normalize=True):
 		if algorithm not in self.VALID_ALGORITHMS:
 			raise ValueError("Algorithm '{}' does not exist as a valid algorithm".format(algorithm))
 		
-		if normalize:
-			self.data = self.__normalize_dataset(dataset)
-		else:
-			self.data = dataset
-		
+		self.data = self.__normalize_dataset(dataset)		
 		self.lr = lr
 		self.algorithm = algorithm
 		self.n = input_size
 		self.m = output_size
-		self.w = self.__init_w()
+		self.w = self.__init_w(normal_params)
+		self.w_mean, self.w_var = normal_params
 		self.trained = False
 		
 	@staticmethod
@@ -36,69 +31,51 @@ class UnsupervisedModel:
 		for d in dataset:
 			ret.append((d - d.min()) / (d.max() - d.min()))
 		return np.array(ret)
+		# print(dataset.mean(), dataset.var())
+		return ((dataset - dataset.mean()) / dataset.var())
 		
-	def __init_w(self):
+	def __init_w(self, normal_params):
 		# Random matrix of weights, with shape (N, M)
 		# and values come from a N(0, 1) distribution
-		return np.random.normal(0, 1, (self.n, self.m))
+		return np.random.normal(normal_params[0], normal_params[1], (self.n, self.m))
 
 	def __str__(self):
 		# Printable representation
-		s = "Algorithm: '{}' - W shape: {} - Trained: {}\n".format(self.algorithm, self.w.shape, self.trained)
-		s += self.w.__repr__()
+		s = "Algorithm: '{}' - W shape: {} - Trained: {} - LR: {}\n".format(self.algorithm, self.w.shape, self.trained, self.lr)
+		s += "Normal Params: mean: {} - var: {}\n".format(self.w_mean, self.w_var)
+		s += "Data mean: {} - Data var: {}".format(self.data.mean(), self.data.var())
+		# s += self.w.__repr__()
 		return s
 	
-	def __optimizer(self, xit, y, i, j):
+	def __optimizer(self, x):
 		# Selects the optimizer, setted previously
 		# with the `algorithm` parameter
-		if self.algorithm == 'hebb':
-			return self.__hebb(xit, y)
-		elif self.algorithm == 'oja_sim':
-			return self.__oja_sim(xit, y, i)
-		elif self.algorithm == 'oja_gen':
-			return self.__oja_gen(xit, y, i)
+		if self.algorithm == 'oja_gen':
+			return self.__oja_gen(x)
 		elif self.algorithm == 'sanger':
-			return self.__sanger(xit, y, i, j)
+			return self.__sanger(x)
 
-	def __hebb(self, xit, y):
-		# This does never cycle, thus
-		# Xit = 0
-		return
-	
-	def __oja_sim(self, xit, y, i):
-		# This does just iterate 1 time, thus
-		# Xit += Wij * Yj
-		xit += y[0] * self.w[i][0]
-		return xit
-	
-	def __oja_gen(self, xit, y, i):
-		# This iterates `M` times, thus
-		# Xit = Sum_0^M Yk * Wik
-		for k in range(self.m):
-			xit += y[k] * self.w[i][k]
-		return xit
-	
-	def __sanger(self, xit, y, i, j):
-		# This iterates `j` times
-		# Xit = Sum_0^j Yk * Wik
-		for k in range(j):
-			xit += y[k] * self.w[i][k]
-		return xit
+	def __oja_gen(self, x):
+		y = x.dot(self.w)
+		z = y.dot(self.w.T)
+		return self.lr * np.outer(x-z, y)
+
+	def __sanger(self, x):
+		y = x.dot(self.w)
+		d = np.triu(np.ones((self.m, self.m)))
+		z = self.w.dot(y.T.dot(d))
+		return self.lr * np.outer(x - z, y.T)
 
 	def train(self):
 		# This method trains the model with
 		# the dataset specified in the init method
 		pbar = tqdm(total=len(self.data))
-
+		pbar.set_description("Orthogonality: Inf")
 		for idx, x in enumerate(self.data):
-			y = x.dot(self.w)
-			dw = np.zeros(self.w.shape)
-			for i in range(self.n):
-				for j in range(self.m):
-					xit = 0
-					self.__optimizer(xit, y, i, j)
-					dw[i][j] = (self.lr * (x[i] - xit) * y[j])
-			self.w += dw
+			self.w += self.__optimizer(x)
+
+			o = np.sum(self.w.transpose().dot(self.w))
+			pbar.set_description("Orthogonality: {}".format(round(o,2)))
 			pbar.update(1)
 
 		self.trained = True

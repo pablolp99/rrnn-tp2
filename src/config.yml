@@ -1,5 +1,8 @@
-algorithm: oja_gen
+algorithm: sanger
+# algorithm: oja_gen
 output: 9
-log_level: NOTSET
-lr: 0.001
+lr: 0.01
 model_name: model
+normal_params:
+  mean: 0
+  var: 0.1
