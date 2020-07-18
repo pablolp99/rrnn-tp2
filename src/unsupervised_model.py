@@ -11,11 +11,13 @@ class UnsupervisedModel:
 		'sanger'
 	]
 	
-	def __init__(self, dataset, input_size, output_size, normal_params=(0, 0.1), lr=0.001, algorithm='hebb', normalize=True):
+	def __init__(self, dataset, input_size, output_size, error=0.1, max_epochs=10, normal_params=(0, 0.1), lr=0.001, algorithm='hebb', normalize=True):
 		if algorithm not in self.VALID_ALGORITHMS:
 			raise ValueError("Algorithm '{}' does not exist as a valid algorithm".format(algorithm))
 		
-		self.data = self.__normalize_dataset(dataset)		
+		self.data = self.__normalize_dataset(dataset)
+		self.error = error
+		self.max_epochs = max_epochs
 		self.lr = lr
 		self.algorithm = algorithm
 		self.n = input_size
@@ -43,7 +45,7 @@ class UnsupervisedModel:
 		# Printable representation
 		s = "Algorithm: '{}' - W shape: {} - Trained: {} - LR: {}\n".format(self.algorithm, self.w.shape, self.trained, self.lr)
 		s += "Normal Params: mean: {} - var: {}\n".format(self.w_mean, self.w_var)
-		s += "Data mean: {} - Data var: {}".format(self.data.mean(), self.data.var())
+		s += "Data mean: {} - Data var: {}".format(round(self.data.mean(), 3), round(self.data.var(), 3))
 		# s += self.w.__repr__()
 		return s
 	
@@ -69,16 +71,22 @@ class UnsupervisedModel:
 	def train(self):
 		# This method trains the model with
 		# the dataset specified in the init method
+		o = self.error+1
+		epoch = 1
 		pbar = tqdm(total=len(self.data))
-		pbar.set_description("Orthogonality: Inf")
-		for idx, x in enumerate(self.data):
-			self.w += self.__optimizer(x)
-
-			o = np.sum(self.w.transpose().dot(self.w))
-			pbar.set_description("Orthogonality: {}".format(round(o,2)))
-			pbar.update(1)
-
-		self.trained = True
+		while abs(o) >= self.error and epoch < self.max_epochs:
+			pbar.set_description("Epoch {} - Orthogonality: Inf".format(epoch, round(o,2)))
+			for idx, x in enumerate(self.data):
+				self.w += self.__optimizer(x)
+				o = np.sum(self.w.T.dot(self.w))
+				pbar.set_description("Epoch {} - Orthogonality: {}".format(epoch, round(o,3)))
+				pbar.update(1)
+			epoch+=1
+			pbar.reset()
+		pbar.close()
+		msg = "Training concluded with an Orthogonality value of {} in {} epochs".format(round(o, 3), epoch)
+		print(msg)
+                return o
 				
 	def predict(self, v):
 		# This method predicts a vector

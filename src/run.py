@@ -14,11 +14,15 @@ from unsupervised_model import UnsupervisedModel
 from utils import *
 
 if __name__ == "__main__":
+
 	data = pd.read_csv("../tp2_training_dataset.csv", header=None).to_numpy()
 	config = yaml.load(open("./config.yml"), Loader=yaml.FullLoader)
 
 	model = UnsupervisedModel(data, data.shape[-1], config["output"],
-							lr=config["lr"], 
+							error=1.5,
+							# error=config["output"],
+							max_epochs=config["max_epochs"],
+							lr=config["lr"],
 							algorithm=config["algorithm"],
 							normalize=True,
 							normal_params=(config["normal_params"]["mean"], config["normal_params"]["var"]))
@@ -30,7 +34,7 @@ if __name__ == "__main__":
 			train = False
 			break
 	
-	if train:
+	if train or config["force_train"]:
 		print(model)
 		model.train()
 		model.save_model(model_name)

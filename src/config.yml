@@ -1,7 +1,9 @@
+force_train: false
 algorithm: sanger
 # algorithm: oja_gen
 output: 9
-lr: 0.01
+max_epochs: 100
+lr: 0.002
 model_name: model
 normal_params:
   mean: 0

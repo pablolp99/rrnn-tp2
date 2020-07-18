@@ -17,7 +17,7 @@ def plot_data(model, data, lims=(-100, 100)):
     
     for t in data:
         prediction = model.predict(t)
-        xyz1.scatter(prediction[x], prediction[y], prediction[z])
+        xyz1.scatter(prediction[x], prediction[y], prediction[z], c='b', alpha=0.7)
 
     xyz2 = fig.add_subplot(1, 3, 2, projection='3d')
     xyz2.set_xlabel("Componente 3")
@@ -29,7 +29,7 @@ def plot_data(model, data, lims=(-100, 100)):
     
     for t in data:
         prediction = model.predict(t)
-        xyz2.scatter(prediction[x], prediction[y], prediction[z])
+        xyz2.scatter(prediction[x], prediction[y], prediction[z], c='b', alpha=0.7)
 
     xyz3 = fig.add_subplot(1, 3, 3, projection='3d')
     xyz3.set_xlabel("Componente 6")
@@ -41,6 +41,6 @@ def plot_data(model, data, lims=(-100, 100)):
     
     for t in data:
         prediction = model.predict(t)
-        xyz3.scatter(prediction[x], prediction[y], prediction[z])
+        xyz3.scatter(prediction[x], prediction[y], prediction[z], c='b', alpha=0.7)
 
     plt.show()

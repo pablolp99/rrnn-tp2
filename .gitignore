@@ -1,4 +1,4 @@
 tmp/*
 src/*.npy
 src/__pycache__
-tp2_training_dataset.csv
+
