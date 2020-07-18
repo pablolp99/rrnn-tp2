@@ -86,7 +86,7 @@ class UnsupervisedModel:
 		pbar.close()
 		msg = "Training concluded with an Orthogonality value of {} in {} epochs".format(round(o, 3), epoch)
 		print(msg)
-                return o
+		return o
 				
 	def predict(self, v):
 		# This method predicts a vector

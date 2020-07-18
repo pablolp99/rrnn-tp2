@@ -5,6 +5,9 @@
 
 ---
 #### Instalacion
+Este modulo requiere de Python 3 y tener el paquete `tkinter`. Para verifica la instalacion del python ejecutar `python3 --version`, esto no deberia dar errores y deberia indicar una version del mismo. Lo ideal es tener de la version >=3.6. Para instalar `tkinter` (en sistemas Unix/BSD) utilizar `apt-get install python3-tk`
+
+##### Pasos recomendados
 Primero se crea un entorno virtual de python (Requiere `virtualenv`) y se accedera al mismo
 
 `~/path/to/dir$ virtualenv py_env_name`
