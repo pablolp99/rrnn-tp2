@@ -41,7 +41,7 @@ if __name__ == "__main__":
 		print(model)
 		model.train()
 		model.save_model(model_name)
-		# model.plot_convergence(save=True, filename='sanger_ort.png')
+		model.plot_convergence(save=True, filename='sanger_ort.png')
 	else:
 		model.load_model(model_name)
 		plot_data(model, dataset, label)
