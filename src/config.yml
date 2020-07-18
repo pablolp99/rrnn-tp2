@@ -3,8 +3,9 @@ algorithm: sanger
 # algorithm: oja_gen
 output: 9
 max_epochs: 100
-lr: 0.002
-model_name: model
+lr: 0.0001
+model_name: model_1e-5
+plot_error: true
 normal_params:
   mean: 0
   var: 0.1

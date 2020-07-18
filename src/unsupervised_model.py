@@ -1,6 +1,8 @@
 try:
 	import numpy as np
 	from tqdm import tqdm
+	import matplotlib.pyplot as plt
+	import seaborn as sns
 except:
 	raise ModuleNotFoundError("Some modules could not be found. Try installing the `requirements.txt`")
 
@@ -11,7 +13,7 @@ class UnsupervisedModel:
 		'sanger'
 	]
 	
-	def __init__(self, dataset, input_size, output_size, error=0.1, max_epochs=10, normal_params=(0, 0.1), lr=0.001, algorithm='hebb', normalize=True):
+	def __init__(self, dataset, input_size, output_size, error=0.1, max_epochs=10, normal_params=(0, 0.1), lr=0.001, algorithm='sanger', normalize=True):
 		if algorithm not in self.VALID_ALGORITHMS:
 			raise ValueError("Algorithm '{}' does not exist as a valid algorithm".format(algorithm))
 		
@@ -25,16 +27,16 @@ class UnsupervisedModel:
 		self.w = self.__init_w(normal_params)
 		self.w_mean, self.w_var = normal_params
 		self.trained = False
+		self.error_convergence = list()
+		self.epoch = 1
 		
 	@staticmethod
 	def __normalize_dataset(dataset):
 		# Normalizes data in the range (0, 1)
 		ret = []
-		for d in dataset:
+		for d in dataset.T:
 			ret.append((d - d.min()) / (d.max() - d.min()))
-		return np.array(ret)
-		# print(dataset.mean(), dataset.var())
-		return ((dataset - dataset.mean()) / dataset.var())
+		return np.array(ret).T
 		
 	def __init_w(self, normal_params):
 		# Random matrix of weights, with shape (N, M)
@@ -46,7 +48,6 @@ class UnsupervisedModel:
 		s = "Algorithm: '{}' - W shape: {} - Trained: {} - LR: {}\n".format(self.algorithm, self.w.shape, self.trained, self.lr)
 		s += "Normal Params: mean: {} - var: {}\n".format(self.w_mean, self.w_var)
 		s += "Data mean: {} - Data var: {}".format(round(self.data.mean(), 3), round(self.data.var(), 3))
-		# s += self.w.__repr__()
 		return s
 	
 	def __optimizer(self, x):
@@ -66,25 +67,36 @@ class UnsupervisedModel:
 		y = x.dot(self.w)
 		d = np.triu(np.ones((self.m, self.m)))
 		z = self.w.dot(y.T.dot(d))
-		return self.lr * np.outer(x - z, y.T)
+		return self.lr * np.outer(x - z, y.T) * self.mult
 
 	def train(self):
 		# This method trains the model with
 		# the dataset specified in the init method
 		o = self.error+1
-		epoch = 1
+		self.mult = 1
+		self.epoch = 1
+
 		pbar = tqdm(total=len(self.data))
-		while abs(o) >= self.error and epoch < self.max_epochs:
-			pbar.set_description("Epoch {} - Orthogonality: Inf".format(epoch, round(o,2)))
+
+		while abs(o) >= self.error and self.epoch <= self.max_epochs-1:
+			pbar.set_description("Epoch {} - Orthogonality: Inf".format(self.epoch, round(o,2)))
+			pbar.reset()
 			for idx, x in enumerate(self.data):
 				self.w += self.__optimizer(x)
-				o = np.sum(self.w.T.dot(self.w))
-				pbar.set_description("Epoch {} - Orthogonality: {}".format(epoch, round(o,3)))
+
+				o = np.sum(self.w.T.dot(self.w)) - self.m
+				
+				if o >= 0:
+					self.mult = 1
+				else:
+					self.mult = -1
+
+				pbar.set_description("Epoch {} - Orthogonality: {}".format(self.epoch, round(o,3)))
 				pbar.update(1)
-			epoch+=1
-			pbar.reset()
+			self.epoch+=1
+			self.error_convergence.append(o)
 		pbar.close()
-		msg = "Training concluded with an Orthogonality value of {} in {} epochs".format(round(o, 3), epoch)
+		msg = "Training concluded with an Orthogonality value of {} in {} epochs using a LR={}".format(round(o, 3), self.epoch, self.lr)
 		print(msg)
 		return o
 				
@@ -100,3 +112,15 @@ class UnsupervisedModel:
 		self.w = np.load(model_name + '.npy', allow_pickle=False)
 		self.trained = True
 		return
+
+	def plot_convergence(self, save=False, filename=None):
+		sns.set_style("darkgrid")
+		sns.lineplot(x=list(range(1, self.epoch)), y=self.error_convergence)
+		plt.xlabel('Epoch')
+		plt.ylabel('Orthogonality')
+		if save:
+			if filename is None:
+				raise ValueError("Filename not indicated")
+			plt.savefig(filename)
+
+		plt.show()

@@ -1,4 +1,6 @@
 tmp/*
 src/*.npy
 src/__pycache__
-
+src/experimento1.py
+*.png
+src/*.png
