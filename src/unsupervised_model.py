@@ -66,8 +66,10 @@ class UnsupervisedModel:
 	def __sanger(self, x):
 		y = x.dot(self.w)
 		d = np.triu(np.ones((self.m, self.m)))
-		z = self.w.dot(y.T.dot(d))
-		return self.lr * np.outer(x - z, y.T) * self.mult
+		z = self.w.dot(y.T*d)
+		return self.lr * np.outer(x - z.sum(axis=1), y.T) * self.mult
+		# z = self.w.dot(y.T.dot(d))
+		# return self.lr * np.outer(x - z, y.T) * self.mult
 
 	def train(self):
 		# This method trains the model with
@@ -85,13 +87,10 @@ class UnsupervisedModel:
 				self.w += self.__optimizer(x)
 
 				o = np.sum(self.w.T.dot(self.w)) - self.m
-				
-				if o >= 0:
-					self.mult = 1
-				else:
-					self.mult = -1
 
-				pbar.set_description("Epoch {} - Orthogonality: {}".format(self.epoch, round(o,3)))
+				self.mult = 1 if o >= 0 else -1
+
+				pbar.set_description("Epoch {} - Orthogonality: {}".format(self.epoch, round(o,4)))
 				pbar.update(1)
 			self.epoch+=1
 			self.error_convergence.append(o)

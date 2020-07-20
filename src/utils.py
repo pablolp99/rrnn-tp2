@@ -11,7 +11,7 @@ def plot_data(model, dataset, label):
     
     prediction = np.array(prediction)
     
-    fig = plt.figure(figsize=plt.figaspect(0.15))
+    fig = plt.figure(figsize=plt.figaspect(0.5))
     # xyz = fig.add_subplot(111, projection='3d')
     xyz1 = fig.add_subplot(1, 3, 1, projection='3d')
 

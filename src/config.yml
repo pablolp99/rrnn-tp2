@@ -1,10 +1,10 @@
-force_train: false
+force_train: true
 algorithm: sanger
 # algorithm: oja_gen
 output: 9
-max_epochs: 100
-lr: 0.0001
-model_name: model_1e-5
+max_epochs: 1000
+lr: 1e-4
+model_name: model_test_2
 plot_error: true
 normal_params:
   mean: 0

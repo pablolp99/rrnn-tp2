@@ -22,10 +22,10 @@ if __name__ == "__main__":
 	dataset = data.drop(columns=[0]).to_numpy()
 
 	model = UnsupervisedModel(dataset, dataset.shape[-1], config["output"],
-							error=0.01,
+							error=0.001,
 							# error=config["output"],
 							max_epochs=config["max_epochs"],
-							lr=config["lr"],
+							lr=float(config["lr"]),
 							algorithm=config["algorithm"],
 							normalize=True,
 							normal_params=(config["normal_params"]["mean"], config["normal_params"]["var"]))
