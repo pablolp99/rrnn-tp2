@@ -22,11 +22,13 @@ A continuacion se instalan las librerias necesarias
 #### Configuracion
 La configuracion del codigo se encuentra en el archivo `src/config.yml`, en el se encuentran las opciones de configuracion. La estructura es la siguiente
 
-- 'algorithm' es el algoritmo/optimizacion que usara el modelo. Puede ser 'oja_gen' o 'sanger'
-- 'output' es la cantidad de neuronas de salida, es decir `M`
-- 'lr' es el learning rate que usara el modelo
-- 'model_name' es donde se guardara el modelo
-- En 'normal_params' es donde se especifican los parametros con los cuales se crea la matriz `W`. Tanto como la media como la varianza
+- 'force_train': hace que se fuerze el entrenamiento cada vez que se ejecute. `true` o `false`.
+- 'algorithm': es el algoritmo/optimizacion que usara el modelo. Puede ser `oja_gen` o `sanger`.
+- 'output': es la cantidad de neuronas de salida, es decir `M`. Default del tp es 9
+- 'lr': es el learning rate que usara el modelo.
+- 'model_name': nombre de como se guardara el modelo.
+- 'plot_error': muestra, una vez finalizada la ejecucion, un grafico de la evolucion de la ortogonalidad del modelo. `true` o `false`
+- 'normal_params': es donde se especifican los parametros con los cuales se crea la matriz `W`. Tanto como la media como la varianza
 
 ---
 #### Ejecucion
